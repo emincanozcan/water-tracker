@@ -1,62 +1,143 @@
-import { WaterService } from '../../core/services/WaterService'
 import { SingleWaterItem } from '../widgets/SingleWaterItem'
-import { ArcList, ArcListItem, ArcListAttribute, ArcListItemAttribute, ComponentContent } from '@kit.ArkUI';
 import { IndexViewModel } from '../viewmodels/IndexViewModel';
-import { SetTargetButton } from '../widgets/SetTargetButton';
-import { SetTargetPage } from './SetTargetPage';
+import { SettingsPageBuilder } from './SettingsPage';
+import { LogWaterPageBuilder } from './LogWaterPage';
+import { HistoryPageBuilder } from './HistoryPage';
+import { SetTargetPageBuilder } from './SetTargetPage';
+import { ProgressHeader } from '../widgets/ProgressHeader';
+import { ActionButton } from '../widgets/ActionButton';
+
+const SETTINGS_PAGE_ROUTE: string = 'settings';
+const LOG_WATER_PAGE_ROUTE: string = 'log-water';
+const HISTORY_PAGE_ROUTE: string = 'HydrationHistoryPage';
+const SET_TARGET_PAGE_ROUTE: string = 'set-target';
 
 @Entry
 @Component
 struct Index {
   indexVm: IndexViewModel = new IndexViewModel()
-  @State context: UIContext = this.getUIContext()
   @Provide('NavPathStack') pageStack: NavPathStack = new NavPathStack()
 
   @Builder
   PagesMap(name: string) {
-    if (name === 'SetTargetButton') {
-      SetTargetButton()
-    }
-    if (name === 'SetTargetPage') {
-      SetTargetPage()
+    if (name === SETTINGS_PAGE_ROUTE) {
+      SettingsPageBuilder()
+    } else if (name === LOG_WATER_PAGE_ROUTE) {
+      LogWaterPageBuilder()
+    } else if (name === HISTORY_PAGE_ROUTE) {
+      HistoryPageBuilder()
+    } else if (name === SET_TARGET_PAGE_ROUTE) {
+      SetTargetPageBuilder()
     }
   }
 
   aboutToAppear(): void {
-    this.indexVm.aboutToAppear(this.context);
+    this.indexVm.aboutToAppear();
+  }
+
+  onPageShow(): void {
+    this.indexVm.aboutToAppear();
   }
 
   build() {
     Navigation(this.pageStack) {
       Column() {
-        Gauge({ value: WaterService.instance().currentWater, min: 0, max: WaterService.instance().waterTarget }) {
-          ArcList({ initialIndex: 0, header: WaterService.instance().header }) {
-            ArcListItem() {
+        Gauge({ value: this.indexVm.currentWater, min: 0, max: this.indexVm.waterTarget }) {
+          List({ space: 0 }) {
+            ListItem() {
+              this.buildHeader();
+            }
+            .width('95%')
+            .margin({ bottom: 6 })
+
+            if (this.indexVm.isLoading) {
+              ListItem() {
+                Text('Loading hydration dashboard...')
+                  .fontSize(11)
+                  .fontColor(0xCCFFFFFF)
+                  .textAlign(TextAlign.Center)
+                  .width('100%')
+              }
+              .width('95%')
+              .margin({ bottom: 8 })
+            }
+
+            if (this.indexVm.hasLoadError) {
+              ListItem() {
+                Column({ space: 8 }) {
+                  Text(this.indexVm.loadErrorText)
+                    .fontSize(11)
+                    .fontColor(0xFFFFC58A)
+                    .textAlign(TextAlign.Center)
+                  ActionButton('Retry', () => {
+                    this.indexVm.aboutToAppear();
+                  }, '62%')
+                }
+                .width('100%')
+              }
+              .width('95%')
+              .margin({ bottom: 8 })
+            }
+
+            ListItem() {
               Row() {
-                SingleWaterItem(250, $r('app.color.gradient_green'), 'app.media.bottle_250', 15, this.context, true);
-                SingleWaterItem(180, $r('app.color.gradient_orange'), 'app.media.bottle_300', 20, this.context);
+                SingleWaterItem(this.indexVm.quickPresets[0], $r('app.color.gradient_green'), 'app.media.bottle_250', 15,
+                  (value: number) => this.indexVm.addWater(value), true);
+                SingleWaterItem(this.indexVm.quickPresets[1], $r('app.color.gradient_orange'), 'app.media.bottle_300', 20,
+                  (value: number) => this.indexVm.addWater(value));
               }
             }
             .width('95%')
-            .margin({ bottom: 10 });
+            .margin({ bottom: 8 });
 
-            ArcListItem() {
+            ListItem() {
               Row() {
-                SingleWaterItem(420, $r('app.color.gradient_brown'), 'app.media.bottle_500', 20, this.context, true);
-                SingleWaterItem(500, $r('app.color.gradient_blue'), 'app.media.bottle_1L', 20, this.context);
+                SingleWaterItem(this.indexVm.quickPresets[2], $r('app.color.gradient_brown'), 'app.media.bottle_500', 20,
+                  (value: number) => this.indexVm.addWater(value), true);
+                SingleWaterItem(this.indexVm.quickPresets[3], $r('app.color.gradient_blue'), 'app.media.bottle_1L', 20,
+                  (value: number) => this.indexVm.addWater(value));
               };
             }
             .width('95%')
-            .margin({ bottom: 20 });
+            .margin({ bottom: 8 });
 
-            ArcListItem() {
-              SetTargetButton();
+            ListItem() {
+              Column({ space: 8 }) {
+                Text(this.indexVm.actionStateText)
+                  .fontSize(10)
+                  .fontColor(this.indexVm.currentWater >= this.indexVm.waterTarget && this.indexVm.waterTarget > 0 ? 0xFF9FF0B0 : 0xCCFFFFFF)
+                  .textAlign(TextAlign.Center)
+                  .width('100%')
+
+                Row({ space: 8 }) {
+                  ActionButton('Custom Log', () => {
+                    this.pageStack.pushPath({ name: LOG_WATER_PAGE_ROUTE, param: null });
+                  })
+                  ActionButton('Undo Last', () => {
+                    this.indexVm.undoLastEntry();
+                  })
+                }
+                .justifyContent(FlexAlign.Center)
+
+                Row({ space: 8 }) {
+                  ActionButton('History', () => {
+                    this.pageStack.pushPath({ name: HISTORY_PAGE_ROUTE, param: null });
+                  })
+                  ActionButton('Settings', () => {
+                    this.pageStack.pushPath({ name: SETTINGS_PAGE_ROUTE, param: null });
+                  })
+                }
+                .justifyContent(FlexAlign.Center)
+              }
             }
             .width('95%')
+            .margin({ bottom: 18 })
           }
           .width('100%')
           .height('100%')
-          .borderRadius('466px')
+          .listDirection(Axis.Vertical)
+          .edgeEffect(EdgeEffect.None)
+          .scrollBar(BarState.Off)
           .focusable(true)
           .focusOnTouch(true)
           .defaultFocus(true)
@@ -67,7 +148,7 @@ struct Index {
         .indicator(null)
         .strokeWidth(18)
         .trackShadow({ radius: 3, offsetX: 3, offsetY: 3 })
-        .value(WaterService.instance().currentWater)
+        .value(this.indexVm.currentWater)
         .align(Alignment.Center)
       }
       .width('100%')
@@ -81,6 +162,12 @@ struct Index {
     .hideTitleBar(true)
     .navDestination(this.PagesMap)
     .hideBackButton(true)
-    .ignoreLayoutSafeArea()
+  }
+
+  @Builder
+  buildHeader() {
+    ProgressHeader(this.indexVm.headerText, this.indexVm.remainingText, this.indexVm.statusText,
+      this.indexVm.completionText, this.indexVm.lastActionText, this.indexVm.reminderText, this.indexVm.showReminderChip,
+      this.indexVm.currentWater >= this.indexVm.waterTarget && this.indexVm.waterTarget > 0 ? 0xFF9FF0B0 : 0xFFFFD780)
   }
 }
