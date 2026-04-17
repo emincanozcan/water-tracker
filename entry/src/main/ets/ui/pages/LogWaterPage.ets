@@ -61,7 +61,7 @@ export struct LogWaterPage {
               this.infoTextColor = 0xFF9FF0B0;
               this.isSubmitting = false;
               setTimeout(() => {
-                this.pageStack.pop();
+                this.pageStack.pop({ shouldRefresh: true });
               }, 900);
             })
 

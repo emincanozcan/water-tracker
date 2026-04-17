@@ -264,7 +264,7 @@ export struct SettingsPage {
                 this.hasUnsavedChanges = false;
                 this.isSaving = false;
                 setTimeout(() => {
-                  this.pageStack.pop();
+                  this.pageStack.pop({ shouldRefresh: true });
                 }, 1000);
               }).catch(() => {
                 this.savedStateText = 'Save failed. Try again';

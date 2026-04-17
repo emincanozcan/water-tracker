@@ -61,7 +61,7 @@ export struct SetTargetPage {
           .onClick(() => {
             if (this.isButtonActive()) {
               WaterService.instance().setDailyTarget(this.value * 100)
-              this.pageStack.pop()
+              this.pageStack.pop({ shouldRefresh: true })
             } else {
               this.showWarningText = true;
             }
