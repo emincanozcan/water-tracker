@@ -19,10 +19,10 @@ Ideal for fitness enthusiasts or anyone aiming to improve daily water consumptio
 
 # Tech Stack
 
-- **Languages**: ArkTS, Typescript
-- **Frameworks**: HarmonyOS SDK 5.1.0(18)
-- **Tools**: DevEco Studio Vers 5.1.0.842
-- **Libraries**: @kit.ArkUI
+- **Languages**: ArkTS, TypeScript
+- **Frameworks**: HarmonyOS SDK 6.0.0(20)
+- **Tools**: DevEco Studio 6.0.0
+- **Kits/Libraries**: `@kit.AbilityKit`, `@kit.ArkUI`, `@kit.ArkData`, `@kit.FormKit`, `@kit.BackgroundTasksKit`, `@kit.NotificationKit`, `@kit.PerformanceAnalysisKit`, `@kit.BasicServicesKit`, `@kit.CoreFileKit`
 
 # Directory Structure
 
